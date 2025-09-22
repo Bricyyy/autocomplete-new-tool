@@ -35,7 +35,7 @@ An interactive React application for exploring and testing the [Google Places Au
 
 1. **Clone the repository:**
    ```sh
-   git clone https://github.com/your-username/places-autocomplete-visualizer.git
+   git clone https://github.com/Bricyyy/autocomplete-new-tool.git
    cd places-autocomplete-visualizer
    ```
 

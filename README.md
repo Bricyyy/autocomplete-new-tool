@@ -3,7 +3,7 @@
 
 # Places Autocomplete Visualizer
 
-An interactive React application for exploring and testing the [Google Places Autocomplete API](https://developers.google.com/maps/documentation/places/web-service/autocomplete) with advanced features like location biasing, location restriction, and field mask selection. Visualize autocomplete predictions and place details directly on a map, and experiment with API parameters in real time.
+An interactive React application for exploring and testing the [Google Places Autocomplete API](https://developers.google.com/maps/documentation/places/web-service) with advanced features like location biasing, location restriction, and field mask selection. Visualize autocomplete predictions and place details directly on a map, and experiment with API parameters in real time.
 
 ---
 

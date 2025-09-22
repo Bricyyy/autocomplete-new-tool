@@ -1,0 +1,5 @@
+{
+  "name": "Places Autocomplete Visualizer",
+  "description": "An interactive React application to visualize and test the Google Places Autocomplete API with location biasing and restrictions.",
+  "requestFramePermissions": []
+}

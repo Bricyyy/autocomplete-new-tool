@@ -3,13 +3,6 @@ import { MarkerData, LatLng, LocationBias, LocationRestriction, AutocompleteRequ
 import { createMarkerIcon, createOriginIcon } from '../utils/mapMarkerUtils';
 import { haversineMeters } from '../utils/geoUtils';
 
-interface MapPadding {
-    top: number;
-    right: number;
-    bottom: number;
-    left: number;
-}
-
 interface MapComponentProps {
     apiKey: string;
     markers: MarkerData[];
@@ -29,12 +22,11 @@ interface MapComponentProps {
     isPlacingOrigin: boolean;
     setIsPlacingOrigin: (value: boolean) => void;
     onOriginUpdate: (origin: LatLng | null) => void;
-    padding: MapPadding;
 }
 
 type MapStatus = 'idle' | 'loading' | 'loaded' | 'error' | 'auth_error' | 'quota_error';
 
-const MapComponent: React.FC<MapComponentProps> = ({ apiKey, markers, origin, bias, restriction, selectedPlaceId, onSelectPlace, drawingFor, setDrawingFor, onShapeUpdate, request, isPlacingOrigin, setIsPlacingOrigin, onOriginUpdate, padding }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ apiKey, markers, origin, bias, restriction, selectedPlaceId, onSelectPlace, drawingFor, setDrawingFor, onShapeUpdate, request, isPlacingOrigin, setIsPlacingOrigin, onOriginUpdate }) => {
     const mapRef = useRef<HTMLDivElement>(null);
     const [map, setMap] = useState<google.maps.Map | null>(null);
     const [infoWindow, setInfoWindow] = useState<google.maps.InfoWindow | null>(null);
@@ -462,10 +454,10 @@ const MapComponent: React.FC<MapComponentProps> = ({ apiKey, markers, origin, bi
             }
 
             if (!bounds.isEmpty()) {
-                map.fitBounds(bounds, padding);
+                map.fitBounds(bounds, 60);
             }
         }
-    }, [map, markers, origin, onSelectPlace, bias, restriction, padding]);
+    }, [map, markers, origin, onSelectPlace, bias, restriction]);
     
     // Effect to handle opening info window when selectedPlaceId changes
     useEffect(() => {

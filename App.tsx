@@ -49,56 +49,6 @@ const App: React.FC = () => {
     const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
     const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false);
 
-    const leftPanelRef = useRef<HTMLDivElement>(null);
-    const rightPanelRef = useRef<HTMLDivElement>(null);
-    const [mapPadding, setMapPadding] = useState({ top: 40, right: 40, bottom: 40, left: 40 });
-
-    const calculateMapPadding = useCallback(() => {
-        const PADDING_BASE = 40; // Base viewport padding
-        const PADDING_OFFSET = 16; // p-4 on the container
-        const COLLAPSED_BUTTON_WIDTH = 32;
-
-        let left = PADDING_BASE;
-        if (leftPanelRef.current) {
-            left = isLeftPanelCollapsed
-                ? PADDING_OFFSET + COLLAPSED_BUTTON_WIDTH + PADDING_BASE
-                : leftPanelRef.current.offsetWidth + PADDING_OFFSET + PADDING_BASE;
-        }
-
-        let right = PADDING_BASE;
-        // Check for responseObject to see if the panel exists
-        if (responseObject) {
-            if (rightPanelRef.current) {
-                 right = isRightPanelCollapsed
-                    ? PADDING_OFFSET + COLLAPSED_BUTTON_WIDTH + PADDING_BASE
-                    : rightPanelRef.current.offsetWidth + PADDING_OFFSET + PADDING_BASE;
-            }
-        }
-        
-        setMapPadding({
-            top: PADDING_BASE,
-            bottom: PADDING_BASE,
-            left,
-            right,
-        });
-    }, [isLeftPanelCollapsed, isRightPanelCollapsed, responseObject]);
-
-    useEffect(() => {
-        // Debounce resize handler
-        let timeoutId: ReturnType<typeof setTimeout>;
-        const handleResize = () => {
-            clearTimeout(timeoutId);
-            timeoutId = setTimeout(calculateMapPadding, 100);
-        };
-
-        // Calculate on mount and when dependencies change
-        calculateMapPadding();
-
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-
-    }, [calculateMapPadding]);
-
     useEffect(() => {
         localStorage.setItem('placesApiKey', apiKey);
     }, [apiKey]);
@@ -334,14 +284,13 @@ const App: React.FC = () => {
                     isPlacingOrigin={isPlacingOrigin}
                     setIsPlacingOrigin={setIsPlacingOrigin}
                     onOriginUpdate={handleOriginUpdate}
-                    padding={mapPadding}
                  />
             </div>
             
             {/* Safe area for floating panels to prevent shadow clipping */}
             <div className="absolute inset-0 p-4 pointer-events-none">
                 {/* Left Panel */}
-                <div ref={leftPanelRef} className={`absolute top-0 left-0 z-10 w-full max-w-md h-full transition-transform duration-300 ease-in-out pointer-events-auto ${isLeftPanelCollapsed ? '-translate-x-full' : 'translate-x-0'}`}>
+                <div className={`absolute top-0 left-0 z-10 w-full max-w-md h-full transition-transform duration-300 ease-in-out pointer-events-auto ${isLeftPanelCollapsed ? '-translate-x-full' : 'translate-x-0'}`}>
                     <div className="relative w-full h-full bg-white rounded-xl shadow-2xl flex flex-col">
                         <header className="p-4 border-b border-gray-200">
                             <h1 className="text-xl font-semibold">Place Autocomplete (New)</h1>
@@ -392,7 +341,7 @@ const App: React.FC = () => {
 
                 {/* Right Panel */}
                 {responseObject && (
-                    <div ref={rightPanelRef} className={`absolute top-0 right-0 z-10 w-full max-w-lg h-full transition-transform duration-300 ease-in-out pointer-events-auto ${isRightPanelCollapsed ? 'translate-x-full' : 'translate-x-0'}`}>
+                    <div className={`absolute top-0 right-0 z-10 w-full max-w-lg h-full transition-transform duration-300 ease-in-out pointer-events-auto ${isRightPanelCollapsed ? 'translate-x-full' : 'translate-x-0'}`}>
                         <div className="relative w-full h-full bg-white rounded-xl shadow-2xl flex flex-col">
                             <div className="flex-grow overflow-y-auto">
                                 <ResultsPanel 

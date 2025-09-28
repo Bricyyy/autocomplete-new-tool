@@ -104,13 +104,6 @@ const App: React.FC = () => {
         }
     }, [responseObject]);
 
-    useEffect(() => {
-        // When a place is selected from the map or list, ensure the results panel is visible.
-        if (selectedPlaceId) {
-            setIsRightPanelCollapsed(false);
-        }
-    }, [selectedPlaceId]);
-
     const handleShapeUpdateFromMap = useCallback((
         locType: 'bias' | 'restriction',
         shape: 'circle' | 'rectangle' | null,
@@ -267,7 +260,7 @@ const App: React.FC = () => {
     }, [setRequest]);
 
     return (
-        <div className="w-screen h-screen relative overflow-x-hidden">
+        <div className="fixed inset-0 overflow-hidden">
             <div className="absolute inset-0 z-0">
                  <MapComponent 
                     apiKey={mapApiKey} 
@@ -350,6 +343,7 @@ const App: React.FC = () => {
                                     markers={markers}
                                     selectedPlaceId={selectedPlaceId}
                                     onSelectPlace={setSelectedPlaceId}
+                                    isCollapsed={isRightPanelCollapsed}
                                 />
                             </div>
                         </div>

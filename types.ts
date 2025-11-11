@@ -1,8 +1,3 @@
-
-
-
-
-
 // FIX: To fix "Cannot find name 'google'" and "Cannot find namespace 'google'" errors,
 // the `google` namespace declaration is moved inside `declare global` to make it available in all files.
 declare global {

@@ -90,7 +90,7 @@ An interactive React application for exploring and testing the [Google Places Au
 
 This project is for educational and demonstration purposes.  
 Not affiliated with Google.  
-See [LICENSE](LICENSE) if present.
+See [LICENSE](LICENSE).
 
 ---
 

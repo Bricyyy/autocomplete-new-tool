@@ -44,6 +44,7 @@ const App: React.FC = () => {
     const [submittedRequest, setSubmittedRequest] = useState<AutocompleteRequest | null>(null);
     const [hasBeenCleared, setHasBeenCleared] = useState<boolean>(false);
     const [isPlacingOrigin, setIsPlacingOrigin] = useState<boolean>(false);
+    const [shouldFitBounds, setShouldFitBounds] = useState<boolean>(false);
     const prevInputRef = useRef<string>(initialRequest.input);
 
     const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
@@ -232,6 +233,7 @@ const App: React.FC = () => {
                 const resolvedMarkers = await Promise.all(markerPromises);
                 const newMarkers = resolvedMarkers.filter((marker): marker is MarkerData => marker !== null);
                 setMarkers(newMarkers);
+                setShouldFitBounds(true);
             }
 
         } catch (error: any) {
@@ -277,6 +279,10 @@ const App: React.FC = () => {
                     isPlacingOrigin={isPlacingOrigin}
                     setIsPlacingOrigin={setIsPlacingOrigin}
                     onOriginUpdate={handleOriginUpdate}
+                    isLeftPanelCollapsed={isLeftPanelCollapsed}
+                    isRightPanelCollapsed={isRightPanelCollapsed}
+                    shouldFitBounds={shouldFitBounds}
+                    onFitBoundsComplete={() => setShouldFitBounds(false)}
                  />
             </div>
             

@@ -22,11 +22,15 @@ interface MapComponentProps {
     isPlacingOrigin: boolean;
     setIsPlacingOrigin: (value: boolean) => void;
     onOriginUpdate: (origin: LatLng | null) => void;
+    isLeftPanelCollapsed: boolean;
+    isRightPanelCollapsed: boolean;
+    shouldFitBounds: boolean;
+    onFitBoundsComplete: () => void;
 }
 
 type MapStatus = 'idle' | 'loading' | 'loaded' | 'error' | 'auth_error' | 'quota_error';
 
-const MapComponent: React.FC<MapComponentProps> = ({ apiKey, markers, origin, bias, restriction, selectedPlaceId, onSelectPlace, drawingFor, setDrawingFor, onShapeUpdate, request, isPlacingOrigin, setIsPlacingOrigin, onOriginUpdate }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ apiKey, markers, origin, bias, restriction, selectedPlaceId, onSelectPlace, drawingFor, setDrawingFor, onShapeUpdate, request, isPlacingOrigin, setIsPlacingOrigin, onOriginUpdate, isLeftPanelCollapsed, isRightPanelCollapsed, shouldFitBounds, onFitBoundsComplete }) => {
     const mapRef = useRef<HTMLDivElement>(null);
     const [map, setMap] = useState<google.maps.Map | null>(null);
     const [infoWindow, setInfoWindow] = useState<google.maps.InfoWindow | null>(null);
@@ -423,7 +427,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ apiKey, markers, origin, bi
         }
     }, [map, origin, onSelectPlace]);
 
-    // Draw markers and fit bounds
+    // Draw markers
     useEffect(() => {
         if (!map) return;
         
@@ -438,30 +442,88 @@ const MapComponent: React.FC<MapComponentProps> = ({ apiKey, markers, origin, bi
             marker.addListener('click', () => onSelectPlace(markerData.details.id));
             return marker;
         });
-
+    }, [map, markers, onSelectPlace]);
+    
+    // Fit bounds on new request
+    useEffect(() => {
+        if (!map || !shouldFitBounds) {
+            return;
+        }
+    
         if (markers.length > 0 || origin || bias || restriction) {
             const bounds = new google.maps.LatLngBounds();
-            activeMarkersRef.current.forEach(m => bounds.extend(m.getPosition()!));
-            
+            markers.forEach(markerData => bounds.extend(markerData.position));
+    
             if (originMarkerRef.current) {
                 bounds.extend(originMarkerRef.current.getPosition()!);
             }
             if (biasShapeRef.current) {
-                bounds.union(biasShapeRef.current.getBounds()!);
+                bounds.union((biasShapeRef.current as any).getBounds()!);
             }
             if (restrictionShapeRef.current) {
-                bounds.union(restrictionShapeRef.current.getBounds()!);
+                bounds.union((restrictionShapeRef.current as any).getBounds()!);
             }
-
+    
             if (!bounds.isEmpty()) {
-                map.fitBounds(bounds, 60);
+                const leftPanelWidth = 448; // max-w-md
+                const rightPanelWidth = 512; // max-w-lg
+                const containerPadding = 16; // p-4 on the container
+                const extraGap = 24; // For shadows and collapse button
+    
+                const isRightPanelVisible = markers.length > 0;
+    
+                const padding = {
+                    top: 60,
+                    bottom: 60,
+                    left: !isLeftPanelCollapsed ? leftPanelWidth + containerPadding + extraGap : 60,
+                    right: isRightPanelVisible && !isRightPanelCollapsed ? rightPanelWidth + containerPadding + extraGap : 60,
+                };
+    
+                map.fitBounds(bounds, padding);
             }
         }
-    }, [map, markers, origin, onSelectPlace, bias, restriction]);
+        onFitBoundsComplete();
+    }, [map, markers, origin, bias, restriction, isLeftPanelCollapsed, isRightPanelCollapsed, shouldFitBounds, onFitBoundsComplete]);
     
-    // Effect to handle opening info window when selectedPlaceId changes
+    // Effect to handle opening info window and panning when selectedPlaceId changes
     useEffect(() => {
         if (!map || !infoWindow) return;
+
+        // This function calculates the necessary pixel offset to center a location
+        // in the visible map area, accounting for the side panels.
+        const panToVisibleArea = (target: google.maps.Marker) => {
+            if (!mapRef.current) return;
+
+            const targetPosition = target.getPosition();
+            if (!targetPosition) return;
+
+            const mapWidth = mapRef.current.offsetWidth;
+            if (mapWidth === 0) return;
+
+            // These values match the fitBounds padding logic for consistency.
+            const leftPanelPhysicalWidth = 448 + 16 + 24;
+            const rightPanelPhysicalWidth = 512 + 16 + 24;
+
+            const isRightPanelVisible = markers.length > 0;
+
+            const leftPadding = !isLeftPanelCollapsed ? leftPanelPhysicalWidth : 0;
+            const rightPadding = isRightPanelVisible && !isRightPanelCollapsed ? rightPanelPhysicalWidth : 0;
+
+            const visibleWidth = mapWidth - leftPadding - rightPadding;
+            const visibleCenterX = leftPadding + (visibleWidth / 2);
+
+            // Calculate the horizontal pixel offset needed to move the map's true center
+            // to the visible area's center.
+            const panX = (mapWidth / 2) - visibleCenterX;
+
+            // Vertical offset can be 0 as panels are on the sides.
+            const panY = 0;
+
+            // First, pan the location to the true center of the map view.
+            map.panTo(targetPosition);
+            // Then, apply the calculated offset to shift it to the visible center.
+            map.panBy(panX, panY);
+        };
 
         if (!selectedPlaceId) {
             infoWindow.close();
@@ -471,6 +533,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ apiKey, markers, origin, bi
         if (selectedPlaceId === 'origin' && originMarkerRef.current) {
             const position = originMarkerRef.current.getPosition();
             if (position) {
+                 panToVisibleArea(originMarkerRef.current);
                  const originContent = `
                     <div class="custom-infowindow p-4 text-gray-800 relative w-64 font-sans">
                       <button id="origin-infowindow-close-btn" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100">&times;</button>
@@ -501,6 +564,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ apiKey, markers, origin, bi
             const googleMarker = activeMarkersRef.current[markerIndex];
             
             if (googleMarker) {
+                panToVisibleArea(googleMarker);
                 infoWindow.setContent(buildInfoWindowContent(markerData, origin));
                 
                 google.maps.event.addListenerOnce(infoWindow, 'domready', () => {
@@ -516,7 +580,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ apiKey, markers, origin, bi
             }
         }
 
-    }, [selectedPlaceId, map, infoWindow, markers, origin, onSelectPlace]);
+    }, [selectedPlaceId, map, infoWindow, markers, origin, onSelectPlace, isLeftPanelCollapsed, isRightPanelCollapsed]);
     
     const renderPlaceholder = () => {
         switch (mapStatus) {

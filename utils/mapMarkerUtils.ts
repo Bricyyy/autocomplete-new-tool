@@ -1,4 +1,3 @@
-
 interface SvgMarkerOptions {
     color?: string;
     size?: number;

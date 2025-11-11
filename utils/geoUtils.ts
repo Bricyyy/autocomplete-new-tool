@@ -1,4 +1,3 @@
-
 import { Rectangle, Circle } from '../types';
 
 export const pointInRect = (lat: number, lng: number, rect: Rectangle): boolean => {

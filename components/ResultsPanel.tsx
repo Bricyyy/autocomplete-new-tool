@@ -83,7 +83,7 @@ const ResultsPanel: React.FC<ResultsPanelProps> = ({ responseObject, curlCommand
                             const target = escapeHtml(fullJsonString.substring(startIndex, endIndex + 1));
                             const after = escapeHtml(fullJsonString.substring(endIndex + 1));
 
-                            highlightedHtml = `${before}<span class="bg-yellow-200 block rounded">${target}</span>${after}`;
+                            highlightedHtml = `${before}<span id="json-highlight" class="bg-yellow-200 block rounded">${target}</span>${after}`;
                         }
                     }
                 }
@@ -92,6 +92,13 @@ const ResultsPanel: React.FC<ResultsPanelProps> = ({ responseObject, curlCommand
 
         if (highlightedHtml) {
             preRef.current.innerHTML = highlightedHtml;
+            // Use a timeout to ensure the DOM has updated after setting innerHTML
+            setTimeout(() => {
+                const highlightElement = document.getElementById('json-highlight');
+                if (highlightElement) {
+                    highlightElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 0);
         } else {
             preRef.current.textContent = fullJsonString;
         }
